@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FIFA 2026 Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f5f5f5;color:#1a1a1a;padding:16px}
+.hero{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.hero-left{display:flex;flex-direction:column;gap:12px}
+.tcard{background:#fff;border:1px solid #e5e5e5;border-radius:12px;padding:16px}
+.t-label{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+.ring-wrap{display:flex;align-items:center;gap:16px}
+.ring-stats{display:flex;flex-direction:column;gap:6px;flex:1}
+.ring-stat{display:flex;justify-content:space-between;align-items:center;font-size:13px}
+.ring-stat-label{color:#888}
+.ring-stat-val{font-weight:600}
+.done-dot{width:8px;height:8px;border-radius:50%;background:#1D9E75;display:inline-block;margin-right:4px}
+.todo-dot{width:8px;height:8px;border-radius:50%;background:#ccc;display:inline-block;margin-right:4px}
+.mini-metrics{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mm{background:#f9f9f9;border-radius:10px;padding:10px 12px;border:1px solid #eee}
+.mm-label{font-size:11px;color:#888;margin-bottom:2px}
+.mm-val{font-size:20px;font-weight:600}
+.mm-sub{font-size:11px;color:#aaa;margin-top:1px}
+.player-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pcard{background:#fff;border:1px solid #e5e5e5;border-radius:12px;padding:14px;position:relative;overflow:hidden}
+.pcard.leader{border-color:#FAC775;border-width:2px}
+.pcard-accent{position:absolute;top:0;left:0;width:4px;height:100%}
+.pcard-top{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.pcard-avatar{width:46px;height:46px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2.5px solid transparent}
+.pcard-info{flex:1;min-width:0}
+.pcard-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pcard-badge{font-size:10px;padding:2px 7px;border-radius:10px;font-weight:600;display:inline-block;margin-top:2px}
+.pcard-pts-wrap{text-align:right;flex-shrink:0}
+.pcard-pts{font-size:26px;font-weight:700;line-height:1}
+.pcard-pts-label{font-size:10px;color:#888}
+.badge-gold{background:#FAEEDA;color:#633806}
+.badge-silver{background:#F1EFE8;color:#444}
+.badge-bronze{background:#FAECE7;color:#712B13}
+.badge-4{background:#f0f0f0;color:#888}
+.pcard-bars{display:flex;flex-direction:column;gap:5px}
+.pbar-row{display:flex;align-items:center;gap:6px;font-size:11px}
+.pbar-lbl{color:#888;width:58px;flex-shrink:0}
+.pbar-outer{flex:1;background:#f0f0f0;border-radius:3px;height:6px;overflow:hidden}
+.pbar-inner{height:100%;border-radius:3px}
+.pbar-num{width:22px;text-align:right;font-weight:600;font-size:11px}
+.acc-row{display:flex;align-items:center;justify-content:space-between;margin-top:8px;padding-top:8px;border-top:1px solid #f0f0f0}
+.acc-label{font-size:11px;color:#888}
+.acc-val{font-size:13px;font-weight:600}
+.section-hd{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.06em;margin:20px 0 10px;display:flex;align-items:center;gap:8px}
+.section-hd::after{content:'';flex:1;height:1px;background:#eee}
+.tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.tab{padding:5px 13px;border:1px solid #ddd;border-radius:20px;font-size:12px;cursor:pointer;background:#fff;color:#666}
+.tab.active{background:#1a1a1a;color:#fff;border-color:transparent}
+.chart-wrap{position:relative;width:100%}
+.legend{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:10px}
+.leg-item{display:flex;align-items:center;gap:5px;font-size:12px;color:#666}
+.leg-sq{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+.photo-chart-wrap{position:relative;width:100%;margin-bottom:0}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-left">
+    <div class="tcard">
+      <div class="t-label">Прогресс турнира</div>
+      <div class="ring-wrap">
+        <canvas id="donut" width="90" height="90"></canvas>
+        <div class="ring-stats">
+          <div class="ring-stat"><span class="ring-stat-label"><span class="done-dot"></span>Сыграно</span><span class="ring-stat-val" style="color:#1D9E75">48</span></div>
+          <div class="ring-stat"><span class="ring-stat-label"><span class="todo-dot"></span>Осталось</span><span class="ring-stat-val">24</span></div>
+          <div class="ring-stat"><span class="ring-stat-label">Всего</span><span class="ring-stat-val">72</span></div>
+        </div>
+      </div>
+      <div style="margin-top:12px;background:#f0f0f0;border-radius:6px;height:8px;overflow:hidden">
+        <div style="width:66.7%;height:100%;background:#1D9E75;border-radius:6px"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:5px;font-size:11px;color:#888">
+        <span>0</span><span style="color:#1D9E75;font-weight:600">66.7% завершено</span><span>72</span>
+      </div>
+    </div>
+    <div class="mini-metrics">
+      <div class="mm"><div class="mm-label">⚡ Всего очков</div><div class="mm-val">256</div><div class="mm-sub">все 4 игрока</div></div>
+      <div class="mm"><div class="mm-label">⭐ Точных</div><div class="mm-val">12</div><div class="mm-sub">из 48 матчей</div></div>
+      <div class="mm"><div class="mm-label">🎯 Сред. за матч</div><div class="mm-val">1.3</div><div class="mm-sub">на игрока</div></div>
+      <div class="mm"><div class="mm-label">🔥 Лидер</div><div class="mm-val" style="color:#E24B4A">Степан</div><div class="mm-sub">+1 очко впереди</div></div>
+    </div>
+  </div>
+  <div class="player-grid" id="playerGrid"></div>
+</div>
+
+<div class="section-hd">Накопленный прогресс с фото</div>
+<div class="tabs" id="tabs">
+  <button class="tab active" data-v="all">Все</button>
+  <button class="tab" data-v="Егор">Егор</button>
+  <button class="tab" data-v="Джордж">Джордж</button>
+  <button class="tab" data-v="Степан">Степан</button>
+  <button class="tab" data-v="Николай">Николай</button>
+</div>
+<div class="photo-chart-wrap" style="height:280px">
+  <canvas id="lineChart"></canvas>
+</div>
+
+<div class="section-hd">Очки за матч</div>
+<div class="legend" id="barLegend"></div>
+<div class="chart-wrap" style="height:190px"><canvas id="barChart"></canvas></div>
+
+<script>
+const players=['Егор','Джордж','Степан','Николай'];
+const clr={'Егор':'#378ADD','Джордж':'#1D9E75','Степан':'#E24B4A','Николай':'#BA7517'};
+const totals={'Егор':58,'Джордж':59,'Степан':70,'Николай':69};
+const exact={'Егор':2,'Джордж':3,'Степан':4,'Николай':3};
+const winner={'Егор':24,'Джордж':22,'Степан':25,'Николай':27};
+const missed={'Егор':22,'Джордж':23,'Степан':18,'Николай':18};
+
+const photos={
+'Егор':'data:image/jpeg;base64,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',
+'Джордж':'data:image/jpeg;base64,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',
+'Степан':'data:image/jpeg;base64,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',
+'Николай':'data:image/jpeg;base64,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'
+};
+
+const rawP=[[1,5,2,2,2],[2,0,5,null,0],[3,0,0,0,5],[4,2,0,2,2],[5,2,2,2,2],[6,0,0,2,0],[7,2,0,0,0],[8,0,0,0,0],[9,2,0,0,0],[10,2,2,2,2],[11,0,0,0,0],[12,2,2,2,2],[13,0,0,0,0],[14,0,0,0,0],[15,2,0,0,0],[16,0,0,0,5],[17,2,2,2,2],[18,2,2,2,2],[19,0,2,2,2],[20,2,2,2,2],[21,0,0,2,0],[22,2,0,2,2],[23,0,0,0,0],[24,0,0,2,2],[25,5,5,0,0],[26,2,2,2,0],[27,2,0,2,2],[28,0,2,2,2],[29,2,2,5,2],[30,2,2,0,2],[31,0,0,0,0],[32,2,2,2,2],[33,2,2,2,2],[34,0,0,0,0],[35,0,2,2,2],[36,2,2,0,2],[37,0,0,0,0],[38,2,2,2,5],[39,0,0,0,0],[40,0,0,2,2],[41,2,0,2,2],[42,2,2,5,2],[43,0,2,2,2],[44,0,2,5,2],[45,0,0,0,0],[46,2,2,2,2],[47,2,2,5,2],[48,2,5,2,2]];
+
+const labels=rawP.map(r=>r[0]);
+const perMatch={};const cumData={};
+players.forEach(p=>{perMatch[p]=[];cumData[p]=[];});
+let cums=[0,0,0,0];
+rawP.forEach(r=>{players.forEach((p,i)=>{perMatch[p].push(r[i+1]);cums[i]+=r[i+1];cumData[p].push(cums[i]);});});
+
+const sorted=[...players].sort((a,b)=>totals[b]-totals[a]);
+const badges=['badge-gold','badge-silver','badge-bronze','badge-4'];
+const medals=['1-е место','2-е место','3-е место','4-е место'];
+
+const pg=document.getElementById('playerGrid');
+sorted.forEach((p,i)=>{
+  const acc=((exact[p]+winner[p])/(exact[p]+winner[p]+missed[p])*100).toFixed(0);
+  const imgEl=`<img class="pcard-avatar" src="${photos[p]}" style="border-color:${clr[p]}" alt="${p}">`;
+  pg.innerHTML+=`<div class="pcard${i===0?' leader':''}">
+    <div class="pcard-accent" style="background:${clr[p]}"></div>
+    <div class="pcard-top">
+      ${imgEl}
+      <div class="pcard-info">
+        <div class="pcard-name" style="color:${clr[p]}">${p}</div>
+        <span class="pcard-badge ${badges[i]}">${medals[i]}</span>
+      </div>
+      <div class="pcard-pts-wrap">
+        <div class="pcard-pts" style="color:${clr[p]}">${totals[p]}</div>
+        <div class="pcard-pts-label">очков</div>
+      </div>
+    </div>
+    <div class="pcard-bars">
+      <div class="pbar-row"><span class="pbar-lbl">Точные</span><div class="pbar-outer"><div class="pbar-inner" style="width:${exact[p]/5*100}%;background:${clr[p]}"></div></div><span class="pbar-num">${exact[p]}</span></div>
+      <div class="pbar-row"><span class="pbar-lbl">Победитель</span><div class="pbar-outer"><div class="pbar-inner" style="width:${winner[p]/30*100}%;background:${clr[p]}88"></div></div><span class="pbar-num">${winner[p]}</span></div>
+      <div class="pbar-row"><span class="pbar-lbl">Промахи</span><div class="pbar-outer"><div class="pbar-inner" style="width:${missed[p]/30*100}%;background:#ddd"></div></div><span class="pbar-num">${missed[p]}</span></div>
+    </div>
+    <div class="acc-row"><span class="acc-label">Точность</span><span class="acc-val" style="color:${clr[p]}">${acc}%</span></div>
+  </div>`;
+});
+
+// Load images for chart plugin
+const avatarImgs={};
+let loadedCount=0;
+players.forEach(p=>{
+  const img=new Image();
+  img.onload=()=>{ avatarImgs[p]=img; loadedCount++; if(loadedCount===players.length) initCharts(); };
+  img.onerror=()=>{ loadedCount++; if(loadedCount===players.length) initCharts(); };
+  img.src=photos[p];
+});
+
+// Custom plugin: draw avatar circles at last data point
+const avatarPlugin={
+  id:'avatars',
+  afterDraw(chart){
+    const {ctx,data}=chart;
+    if(chart.config.type!=='line') return;
+    data.datasets.forEach((ds,di)=>{
+      const name=ds.label;
+      if(!avatarImgs[name]) return;
+      const meta=chart.getDatasetMeta(di);
+      if(meta.hidden||!meta.data.length) return;
+      const last=meta.data[meta.data.length-1];
+      const x=last.x, y=last.y;
+      const r=14;
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(x,y,r,0,Math.PI*2);
+      ctx.closePath();
+      ctx.clip();
+      ctx.drawImage(avatarImgs[name],x-r,y-r,r*2,r*2);
+      ctx.restore();
+      // border
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(x,y,r,0,Math.PI*2);
+      ctx.strokeStyle=clr[name];
+      ctx.lineWidth=2.5;
+      ctx.stroke();
+      ctx.restore();
+    });
+  }
+};
+Chart.register(avatarPlugin);
+
+function initCharts(){
+  new Chart(document.getElementById('donut'),{
+    type:'doughnut',
+    data:{labels:['Сыграно','Осталось'],datasets:[{data:[48,24],backgroundColor:['#1D9E75','#e0e0e0'],borderWidth:0,borderRadius:3}]},
+    options:{responsive:false,cutout:'72%',plugins:{legend:{display:false},tooltip:{enabled:false}}}
+  });
+
+  function lineDatasets(view){
+    const ps=view==='all'?players:[view];
+    return ps.map((p,i)=>({label:p,data:cumData[p],borderColor:clr[p],backgroundColor:clr[p]+'18',pointRadius:0,pointHoverRadius:5,borderWidth:2.5,tension:0.35,fill:view!=='all'}));
+  }
+
+  const lineChart=new Chart(document.getElementById('lineChart'),{
+    type:'line',
+    data:{labels,datasets:lineDatasets('all')},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      layout:{padding:{right:32,top:20,bottom:4}},
+      plugins:{
+        legend:{display:false},
+        avatars:{},
+        tooltip:{mode:'index',intersect:false,callbacks:{title:v=>`Матч ${v[0].label}`}}
+      },
+      scales:{
+        x:{ticks:{maxTicksLimit:12,font:{size:10}},grid:{display:false},title:{display:true,text:'Матч №',font:{size:10},color:'#888'}},
+        y:{ticks:{font:{size:10}},grid:{color:'rgba(0,0,0,0.05)'},title:{display:true,text:'Очки',font:{size:10},color:'#888'}}
+      }
+    }
+  });
+
+  function buildBarLegend(ps){
+    document.getElementById('barLegend').innerHTML=ps.map(p=>`<span class="leg-item"><span class="leg-sq" style="background:${clr[p]}"></span>${p} ${totals[p]} оч.</span>`).join('');
+  }
+  buildBarLegend(players);
+
+  const barChart=new Chart(document.getElementById('barChart'),{
+    type:'bar',
+    data:{labels,datasets:players.map(p=>({label:p,data:perMatch[p],backgroundColor:clr[p]+'99',borderColor:clr[p],borderWidth:0.5}))},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false,callbacks:{title:v=>`Матч ${v[0].label}`}}},
+      scales:{x:{ticks:{maxTicksLimit:12,font:{size:10}},grid:{display:false}},y:{ticks:{font:{size:10},stepSize:1},grid:{color:'rgba(0,0,0,0.05)'}}}
+    }
+  });
+
+  document.getElementById('tabs').addEventListener('click',e=>{
+    const tab=e.target.closest('.tab');if(!tab) return;
+    const v=tab.dataset.v;
+    document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t===tab));
+    lineChart.data.datasets=lineDatasets(v);
+    lineChart.update();
+    const ps=v==='all'?players:[v];
+    buildBarLegend(ps);
+    barChart.data.datasets=ps.map(p=>({label:p,data:perMatch[p],backgroundColor:clr[p]+'99',borderColor:clr[p],borderWidth:0.5}));
+    barChart.update();
+  });
+}
+</script>
+</body>
+</html>
